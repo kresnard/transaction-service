@@ -59,6 +59,10 @@ transaction-service/
 
 This database schema is designed for a checkout backend system that supports dynamic promotions and inventory management. It consists of four main tables:
 
+### ERD
+
+![Checkout Flow](./transaction_db.png)
+
 ### Products Table
 
 ```sql
