@@ -7,6 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 	"transaction-service/config"
+	v1 "transaction-service/internal/controller/http/v1"
+	repo "transaction-service/internal/repository"
+	"transaction-service/internal/usecase/checkout"
 	"transaction-service/pkg/httpserver"
 	"transaction-service/pkg/logger"
 	"transaction-service/pkg/mysql"
@@ -21,18 +24,18 @@ func Run(cfg *config.Config) {
 	l := logger.New(cfg)
 
 	//MYSQL
-	db := mysql.New(cfg.MYSQL.MysqlDriverName, cfg, l)
-	defer db.Close()
+	db := mysql.New(cfg, l)
 
 	//Repository
-
+	repo := repo.NewRepository(db)
 
 	//Usecase
+	checkoutUsecase := checkout.NewUsecase(repo, l, cfg)
 	
 
 	//HTTP Server
 	handler := mux.NewRouter()
-	
+	v1.NewRouter(handler, l,cfg, checkoutUsecase)
 	httpServer := httpserver.New(handler, cfg, httpserver.Port(cfg.HTTPServer.Port))
 
 	//Waiting signal

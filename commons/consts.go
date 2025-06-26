@@ -1,3 +1,7 @@
 package commons
 
-var ()
+var (
+	TypeBundle   = "bundle"
+	TypeDiscount = "discount"
+	TypeFreebie  = "freebie"
+)

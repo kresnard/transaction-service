@@ -1,24 +1,32 @@
 package mysql
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"time"
 	"transaction-service/config"
-	"transaction-service/pkg/logger"
+	loggerTrx "transaction-service/pkg/logger"
 
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
-
-func New(driverName string, cfg *config.Config, l *logger.Logger) *sql.DB {
-	db, err := sql.Open("mysql", cfg.MYSQL.URL)
+func New(cfg *config.Config, l *loggerTrx.Logger) *gorm.DB {
+	dsn := cfg.MYSQL.URL
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
-		log.Fatalf(fmt.Sprintf("not success to connect to database: %v", err))
+		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	db.SetMaxIdleConns(cfg.MYSQL.MaxIdleConns)
-	db.SetMaxOpenConns(cfg.MYSQL.MaxOpenConns)
-	db. SetConnMaxLifetime(time.Duration(cfg.MYSQL.MaxLifeTimeConns) *  time.Second)
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("failed to get generic DB from GORM: %v", err)
+	}
+
+	sqlDB.SetMaxIdleConns(cfg.MYSQL.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(cfg.MYSQL.MaxOpenConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(cfg.MYSQL.MaxLifeTimeConns) * time.Second)
+
 	return db
 }
