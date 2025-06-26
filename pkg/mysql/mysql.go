@@ -27,6 +27,7 @@ func New(cfg *config.Config, l *loggerTrx.Logger) *gorm.DB {
 	sqlDB.SetMaxIdleConns(cfg.MYSQL.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(cfg.MYSQL.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.MYSQL.MaxLifeTimeConns) * time.Second)
+	sqlDB.SetMaxOpenConns(cfg.MYSQL.MaxOpenConns)
 
 	return db
 }
