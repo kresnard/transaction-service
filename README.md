@@ -27,7 +27,7 @@ A backend checkout system for e-commerce applications built with Golang, MySQL, 
 ## 📁 Project Structure
 
 ```
-checkout-system/
+transaction-service/
 |-cmd
 |-commons
 |-config
@@ -57,6 +57,8 @@ checkout-system/
 
 ## 🗄️ Database Schema
 
+This database schema is designed for a checkout backend system that supports dynamic promotions and inventory management. It consists of four main tables:
+
 ### Products Table
 
 ```sql
@@ -83,6 +85,13 @@ CREATE TABLE IF NOT EXISTS promotions (
 );
 ```
 
+Description:
+This table allows defining dynamic promotions such as:
+
+- Buy 3 pay for 2
+- Buy X, get Y for free
+- Buy N and get percentage discounts
+
 ### Orders Table
 
 ```sql
@@ -104,6 +113,12 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (sku) REFERENCES products(sku)
 );
 ```
+
+### Goals:
+
+Normalized: Efficient storage, easy expansion
+Promotion-Driven: Flexible rules stored in DB
+Clean Relationships: Referential integrity maintained
 
 ## 🔧 Installation & Setup
 
