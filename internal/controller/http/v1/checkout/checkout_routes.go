@@ -24,5 +24,5 @@ func NewCheckoutRoutes(r *mux.Router, l *logger.Logger, cfg *config.Config, cu c
 	}).Methods(http.MethodGet)
 
 	group := r.PathPrefix("/v1/checkout").Subrouter()
-	group.HandleFunc("/order", c.Checkout).Methods(http.MethodPost)
+	group.HandleFunc("/order", c.Order).Methods(http.MethodPost)
 }

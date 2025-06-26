@@ -2,8 +2,8 @@ package checkout
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"net/http"
 	"transaction-service/commons"
 	"transaction-service/internal/entity"
 
@@ -38,10 +38,6 @@ func (c Usecase) Checkout(ctx context.Context, skus []string) (res *entity.Order
 	var ( 
 		order entity.Order
 	)
-	
-	if len(skus) == 0 {
-		return res, errors.New("empty cart")
-	}
 
 	itemCount := map[string]int{}
 	for _, sku := range skus {
@@ -91,6 +87,11 @@ func (c Usecase) Checkout(ctx context.Context, skus []string) (res *entity.Order
 			}
 
 			if product.InventoryQty < totalQty {
+				c.l.CreateLog(&logger.Log{
+					Event:			"USECASE"+"|Checkout|Checkout",
+					StatusCode:		http.StatusInternalServerError,
+					Message: 		"product InventoryQty < totalQty",
+				}, logger.LVL_ERROR)
 				return fmt.Errorf("out of stock: %s", sku)
 			}
 

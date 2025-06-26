@@ -27,7 +27,7 @@ func Run(cfg *config.Config) {
 	db := mysql.New(cfg, l)
 
 	//Repository
-	repo := repo.NewRepository(db)
+	repo := repo.NewRepository(db, l, cfg)
 
 	//Usecase
 	checkoutUsecase := checkout.NewUsecase(repo, l, cfg)

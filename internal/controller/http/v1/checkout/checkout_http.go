@@ -3,13 +3,42 @@ package checkout
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 	http_response "transaction-service/internal/controller/response"
+	"transaction-service/pkg/logger"
 )
 
-func (c CheckoutRoutes) Checkout(w http.ResponseWriter, r *http.Request) {
+var (
+	timeNow = time.Since
+)
+
+
+func (c CheckoutRoutes) Order(w http.ResponseWriter, r *http.Request) {
 	checkout := CheckoutRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(&checkout); err != nil {
+		c.l.CreateLog(&logger.Log{
+			Event:			"HTTP|CHECKOUT"+"|Order|DECODE",
+			StatusCode:		http.StatusBadRequest,
+			ResponseTime: 	timeNow(time.Now()),
+			Method: 		r.Method,
+			Request: 		checkout,
+			Message: 		"error decode",
+		}, logger.LVL_ERROR)
+		http_response.HttpErrorResponse(w, false, http.StatusBadRequest, "400", err.Error())
+		return
+	}
+
+	err := checkout.validationCheckoutRequest()
+	if err != nil {
+		c.l.CreateLog(&logger.Log{
+			Event:			"HTTP|CHECKOUT"+"|Order|VALIDATION",
+			StatusCode:		http.StatusBadRequest,
+			ResponseTime: 	timeNow(time.Now()),
+			Method: 		r.Method,
+			Request: 		checkout,
+			Message: 		"error validation",
+		}, logger.LVL_ERROR)
 		http_response.HttpErrorResponse(w, false, http.StatusBadRequest, "400", err.Error())
 		return
 	}
