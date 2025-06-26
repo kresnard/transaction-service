@@ -159,7 +159,13 @@ go run cmd/main.go
 
 The server will start on `http://localhost:8080`
 
-## 🐳 Docker Setup
+## Dockerfile setup
+
+- Run this command
+
+```
+docker build -t trx-service .
+```
 
 ## 📡 API Endpoints
 
