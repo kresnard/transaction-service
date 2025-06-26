@@ -37,7 +37,6 @@ type ICheckoutUsecase interface {
 func (c Usecase) Checkout(ctx context.Context, skus []string) (res *entity.Order, err error) {
 	var ( 
 		order entity.Order
-		orderItem entity.OrderItem
 	)
 	
 	if len(skus) == 0 {
@@ -58,29 +57,56 @@ func (c Usecase) Checkout(ctx context.Context, skus []string) (res *entity.Order
 	
 
 	err = db.Transaction(func(tx *gorm.DB) error {
+		freeItemCount := map[string]int{}
+
 		for sku, qty := range itemCount {
 			product, err := c.repository.GetProductBySKU(ctx, tx, sku)
 			if err != nil {
 				return err
 			}
 
-			if product.InventoryQty < qty {
-				return fmt.Errorf("out of stock: %s", sku)
-			}
+			subTotal, freeItems, _ := c.promotion(sku, qty, product.Price, promos)
 
-			err = c.repository.ReduceInventory(ctx, tx, sku, qty)
+			order.Items = append(order.Items, entity.OrderItem{
+				SKU: sku,
+				Quantity: qty,
+				UnitPrice: product.Price,
+				SubTotal: float64(qty) * product.Price,
+			})
+			order.TotalPrice += subTotal
+
+			for _, item := range freeItems {
+				freeItemCount[item.SKU] += item.Quantity
+			}
+		}
+
+		for sku, qty := range freeItemCount {
+			itemCount[sku] += qty
+		}
+
+		for sku, totalQty := range itemCount {
+			product, err := c.repository.GetProductBySKU(ctx, tx, sku)
 			if err != nil {
 				return err
 			}
 
-			subTotal, freeItems, _ := c.promotion(sku, qty, product.Price, promos)
-			orderItem.SKU = sku
-			orderItem.UnitPrice = product.Price
-			orderItem.Quantity = qty
-			orderItem.SubTotal = subTotal
-			order.Items = append(order.Items, orderItem)
-			order.Items = append(order.Items, freeItems...)
-			order.TotalPrice += subTotal
+			if product.InventoryQty < totalQty {
+				return fmt.Errorf("out of stock: %s", sku)
+			}
+
+			err = c.repository.ReduceInventory(ctx, tx, sku, totalQty)
+			if err != nil {
+				return err
+			}
+		}
+
+		for sku, qty := range freeItemCount {
+			order.Items = append(order.Items, entity.OrderItem{
+				SKU: sku,
+				Quantity: qty,
+				UnitPrice: 0,
+				SubTotal: 0,
+			})
 		}
 
 		err := c.repository.Save(ctx, tx, &order)
@@ -98,20 +124,27 @@ func (c Usecase) Checkout(ctx context.Context, skus []string) (res *entity.Order
 	return &order, nil
 }
 
-func (c Usecase) promotion(sku string, qty int, price float64, listPromo []entity.Promotion) (subTotal float64, orderItems []entity.OrderItem, promoName string ) {
+func (c Usecase) promotion(sku string, qty int, price float64, listPromo []entity.Promotion) (subTotal float64, freeItems []entity.OrderItem, promoName string ) {
+	subTotal = float64(qty) * price
+	freeItems = nil
+	promoName = ""
+
 	for _, promo := range listPromo {
-		if  promo.TargetSKU != sku || qty < promo.ConditionQuantity {
+		if  promo.TargetSKU != sku {
 			continue
 		}
 
 		switch promo.Type {
 		case commons.TypeBundle :
 			paid := qty - (qty / promo.ConditionQuantity)
-			return float64(paid) * price, nil, promo.Name
+			subTotal = float64(paid) * price
+			return subTotal, nil, promo.Name
 		
 		case commons.TypeDiscount: 
-			discount := price * (promo.DiscountPercent / 100)
-			return float64(qty) * (price - discount), nil, promo.Name
+			if qty >= promo.ConditionQuantity {
+				discount := price * (promo.DiscountPercent / 100)
+				return float64(qty) * (price - discount), nil, promo.Name
+			}
 
 		case commons.TypeFreebie:
 			freeItems := []entity.OrderItem{
@@ -119,12 +152,12 @@ func (c Usecase) promotion(sku string, qty int, price float64, listPromo []entit
 					SKU: promo.FreeSKU,
 					Quantity: qty,
 					UnitPrice: 0,
-					 SubTotal: 0,
+					SubTotal: 0,
 				},
 			}
 			return float64(qty)*price, freeItems, promo.Name
 		}
 	}
 	
-	return
+	return subTotal, nil, ""
 }

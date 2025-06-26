@@ -175,16 +175,15 @@ docker build -t trx-service .
 
 ### Checkout
 
+#### Discount
+
 ```http
 POST /v1/checkout/order
 Content-Type: application/json
 
 {
     "items": [
-        "A304SD",
-        "A304SD",
-        "A304SD",
-        "A304SD"
+        "A304SD", "A304SD", "A304SD"
     ]
 }
 ```
@@ -197,16 +196,98 @@ Content-Type: application/json
   "status_code": "201",
   "message": "success create checkout",
   "data": {
-    "id": 5,
-    "total_price": 394.2,
+    "id": 26,
+    "total_price": 295.65,
     "items": [
       {
-        "id": 18,
-        "order_id": 5,
+        "id": 47,
+        "order_id": 26,
         "sku": "A304SD",
-        "quantity": 4,
+        "quantity": 3,
         "unit_price": 109.5,
-        "subtotal": 394.2
+        "subtotal": 328.5
+      }
+    ]
+  }
+}
+```
+
+#### Bundle
+
+```http
+POST /v1/checkout/order
+Content-Type: application/json
+
+{
+    "items": [
+        "120P90", "120P90", "120P90"
+    ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "status": true,
+  "status_code": "201",
+  "message": "success create checkout",
+  "data": {
+    "id": 27,
+    "total_price": 99.98,
+    "items": [
+      {
+        "id": 48,
+        "order_id": 27,
+        "sku": "120P90",
+        "quantity": 3,
+        "unit_price": 49.99,
+        "subtotal": 149.97
+      }
+    ]
+  }
+}
+```
+
+#### Freebies
+
+```http
+POST /v1/checkout/order
+Content-Type: application/json
+
+{
+    "items": [
+        "43N23P"
+    ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "status": true,
+  "status_code": "201",
+  "message": "success create checkout",
+  "data": {
+    "id": 28,
+    "total_price": 5399.99,
+    "items": [
+      {
+        "id": 49,
+        "order_id": 28,
+        "sku": "43N23P",
+        "quantity": 1,
+        "unit_price": 5399.99,
+        "subtotal": 5399.99
+      },
+      {
+        "id": 50,
+        "order_id": 28,
+        "sku": "234234",
+        "quantity": 1,
+        "unit_price": 0,
+        "subtotal": 0
       }
     ]
   }
