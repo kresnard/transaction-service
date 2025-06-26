@@ -136,7 +136,7 @@ go mod
 - create your db
 - migrate / create table and seed data from dir database/transaction_service.sql
 
-### 6. Start the Server
+### 5. Start the Server
 
 ```bash
 go run cmd/main.go
