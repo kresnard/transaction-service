@@ -28,4 +28,4 @@ mysql:
   mysql_max_idle_conns: 100
   mysql_max_lifetime_conns: 5
   mysql_lifetime_conns_unit: ""
-  mysql_url: "root:password@tcp(127.0.0.1:3306)/multifinance?charset=utf8mb4&parseTime=True&loc=Local"
+  mysql_url: "root:password@tcp(127.0.0.1:3306)/transaction?charset=utf8mb4&parseTime=True&loc=Local"
