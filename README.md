@@ -142,7 +142,7 @@ cd transaction-service
 ### 2. Install Dependencies
 
 ```bash
-go mod
+go mod tidy
 ```
 
 ### 3. Environment Configuration
