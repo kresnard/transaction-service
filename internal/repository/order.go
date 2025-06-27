@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"net/http"
+	"transaction-service/commons"
 	"transaction-service/internal/entity"
 	"transaction-service/pkg/logger"
 
@@ -16,9 +17,9 @@ func (r Repository) Save(ctx context.Context, tx *gorm.DB, order *entity.Order) 
 			Event:			"REPOSITORY"+"|Order|Save",
 			StatusCode:		http.StatusInternalServerError,
 			Request: 		order,
-			Message: 		"error query",
+			Message: 		err.Error(),
 		}, logger.LVL_ERROR)
-		return err
+		return commons.ErrFailedSaveData
 	}
 
 	return nil

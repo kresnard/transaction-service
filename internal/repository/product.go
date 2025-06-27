@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"transaction-service/commons"
 	"transaction-service/internal/entity"
 	"transaction-service/pkg/logger"
 
@@ -13,12 +15,20 @@ import (
 func (r Repository) GetProducts(ctx context.Context) (products []entity.Product, err error) {
 	err = r.db.WithContext(ctx).Find(&products).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.l.CreateLog(&logger.Log{
+				Event:			"REPOSITORY"+"|Product|GetProducts",
+				StatusCode:		http.StatusNotFound,
+				Message: 		err.Error(),
+			}, logger.LVL_ERROR)
+			return products, commons.ErrNotFound
+		}
 		r.l.CreateLog(&logger.Log{
 			Event:			"REPOSITORY"+"|Product|GetProducts",
 			StatusCode:		http.StatusInternalServerError,
-			Message: 		"error query",
+			Message: 		err.Error(),
 		}, logger.LVL_ERROR)
-		return products, err
+		return products, commons.ErrFailedGetData
 	}
 
 	return
@@ -27,13 +37,22 @@ func (r Repository) GetProducts(ctx context.Context) (products []entity.Product,
 func (r Repository) GetProductBySKU(ctx context.Context, tx *gorm.DB, sku string) (product entity.Product, err error) {
 	err = tx.WithContext(ctx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&product, "sku = ?", sku).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			r.l.CreateLog(&logger.Log{
+				Event:			"REPOSITORY"+"|Product|GetProductBySKU",
+				StatusCode:		http.StatusNotFound,
+				Message: 		err.Error(),
+			}, logger.LVL_ERROR)
+			return product, commons.ErrNotFound
+		}
 		r.l.CreateLog(&logger.Log{
 			Event:			"REPOSITORY"+"|Product|GetProductBySKU",
 			StatusCode:		http.StatusInternalServerError,
-			Message: 		"error query",
+			Message: 		err.Error(),
 		}, logger.LVL_ERROR)
-		return product, err
+		return product, commons.ErrFailedGetData
 	}
+
 
 	return
 }
@@ -48,9 +67,9 @@ func (r Repository) ReduceInventory(ctx context.Context, tx *gorm.DB, sku string
 		r.l.CreateLog(&logger.Log{
 			Event:			"REPOSITORY"+"|Product|ReduceInventory",
 			StatusCode:		http.StatusInternalServerError,
-			Message: 		"error query",
+			Message: 		err.Error(),
 		}, logger.LVL_ERROR)
-		return err
+		return commons.ErrUpdateData
 	}
 
 	return
