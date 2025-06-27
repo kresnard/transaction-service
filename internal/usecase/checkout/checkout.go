@@ -31,10 +31,10 @@ func NewUsecase(repository repository.IRepository,	l *logger.Logger,	cfg *config
 }
 
 type ICheckoutUsecase interface {
-	Checkout(ctx context.Context, skus []string) (*entity.Order, error)
+	Order(ctx context.Context, skus []string) (*entity.Order, error)
 }
 
-func (c Usecase) Checkout(ctx context.Context, skus []string) (res *entity.Order, err error) {
+func (c Usecase) Order(ctx context.Context, skus []string) (res *entity.Order, err error) {
 	var ( 
 		order entity.Order
 	)

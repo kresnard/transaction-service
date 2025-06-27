@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidationCheckoutRequest(t *testing.T) {
+func TestValidationOrderRequest(t *testing.T) {
 	var (
-		request = CheckoutRequest{
+		request = OrderRequest{
 			Items: []string{
 				"43N23P",
 			},
@@ -16,13 +16,13 @@ func TestValidationCheckoutRequest(t *testing.T) {
 	)
 
 	t.Run("valid items", func(t *testing.T) {
-		err := request.validationCheckoutRequest()
+		err := request.validationOrderRequest()
 		assert.NoError(t, err)
 	})
 
 	t.Run("invalid items", func(t *testing.T) {
-		request = CheckoutRequest{Items: []string{}}
-		err := request.validationCheckoutRequest()
+		request = OrderRequest{Items: []string{}}
+		err := request.validationOrderRequest()
 		assert.Error(t, err)
 		assert.Equal(t, "order item can't empty", err.Error())
 	})

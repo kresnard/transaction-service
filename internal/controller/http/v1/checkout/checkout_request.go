@@ -2,11 +2,11 @@ package checkout
 
 import "errors"
 
-type CheckoutRequest struct {
+type OrderRequest struct {
 	Items []string `json:"items"`
 }
 
-func (data CheckoutRequest) validationCheckoutRequest() (err error) {
+func (data OrderRequest) validationOrderRequest() (err error) {
 	if len(data.Items) < 1 {
 		return errors.New("order item can't empty")
 	}
