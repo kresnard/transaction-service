@@ -14,7 +14,7 @@ var (
 
 
 func (c CheckoutRoutes) Order(w http.ResponseWriter, r *http.Request) {
-	checkout := CheckoutRequest{}
+	checkout := OrderRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(&checkout); err != nil {
 		c.l.CreateLog(&logger.Log{
@@ -29,7 +29,7 @@ func (c CheckoutRoutes) Order(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := checkout.validationCheckoutRequest()
+	err := checkout.validationOrderRequest()
 	if err != nil {
 		c.l.CreateLog(&logger.Log{
 			Event:			"HTTP|CHECKOUT"+"|Order|VALIDATION",
@@ -43,7 +43,7 @@ func (c CheckoutRoutes) Order(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := c.cu.Checkout(r.Context(), checkout.Items)
+	res, err := c.cu.Order(r.Context(), checkout.Items)
 	if err != nil {
 		http_response.HttpErrorResponse(w, false, http.StatusBadRequest, "500", err.Error())
 		return
